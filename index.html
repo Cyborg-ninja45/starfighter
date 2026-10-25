@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>STARFIGHTER | CYBORG-NINJA GAMES</title>
+<style>
+:root{--cyan:#7deaff;--blue:#328cba;--gold:#ffc878;--red:#ff525c;--panel:rgba(5,12,21,.88);--line:rgba(143,213,238,.27)}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02050b;color:#e5f5ff;font-family:Arial,Helvetica,sans-serif}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:none}
+button{font:inherit;cursor:pointer;color:#eafaff;background:rgba(12,29,43,.92);border:1px solid rgba(125,234,255,.48);padding:12px 20px;letter-spacing:2px;text-transform:uppercase;transition:.15s}
+button:hover{background:rgba(35,91,115,.9);border-color:#a5f5ff;box-shadow:0 0 20px #40dfff30}
+#hud{position:absolute;inset:0;pointer-events:none;display:none;overflow:hidden}
+.panel{position:absolute;background:linear-gradient(135deg,rgba(7,19,31,.88),rgba(4,10,19,.63));border:1px solid var(--line);padding:12px;clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,0 100%)}
+.kicker{font-size:10px;letter-spacing:3px;color:#7ba9bd;text-transform:uppercase}
+.value{font-size:22px;letter-spacing:2px;font-weight:bold;margin-top:5px;text-shadow:0 0 12px #55cfff40}
+#topLeft{top:18px;left:18px;width:225px}
+#topRight{top:18px;right:18px;width:220px;text-align:right}
+#bottomLeft{bottom:20px;left:18px;width:245px}
+#bottomRight{bottom:20px;right:18px;width:225px;text-align:right;max-height:57vh;overflow:auto;pointer-events:auto}
+.bar{height:5px;background:#20323d;margin-top:7px;overflow:hidden}
+.bar span{height:100%;display:block;width:100%;transition:width .1s}
+#hpBar{background:#65e4ff}
+#shieldBar{background:#7c8cff}
+#weaponBar{background:#ffc878}
+#centerReadout{position:absolute;left:50%;top:18px;transform:translateX(-50%);text-align:center;white-space:nowrap}
+#centerReadout .value{font-size:16px}
+#crosshair{display:none;position:absolute;width:42px;height:42px;left:50%;top:50%;transform:translate(-50%,-50%);transition:opacity .1s}
+#crosshair:before,#crosshair:after{content:"";position:absolute;background:#9bf1ff;box-shadow:0 0 7px #4fdfff}
+#crosshair:before{width:1px;height:42px;left:20px}
+#crosshair:after{height:1px;width:42px;top:20px}
+#crossDot{position:absolute;width:3px;height:3px;background:#fff;left:19px;top:19px;box-shadow:0 0 7px white}
+#lock{position:absolute;left:50%;top:50%;width:90px;height:90px;transform:translate(-50%,-50%);border:1px solid #ff6969;display:none}
+#toast{position:absolute;top:28%;left:50%;transform:translateX(-50%);color:#baf6ff;letter-spacing:4px;font-size:12px;text-shadow:0 0 12px #2bdcff;opacity:0;transition:opacity .2s;pointer-events:none;text-align:center}
+#damageFlash{position:absolute;inset:0;border:0 solid #ff3344;box-shadow:inset 0 0 0 0 #ff24331a;pointer-events:none}
+#vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.42) 100%);pointer-events:none}
+#menu,#endScreen,#pauseScreen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 45%,rgba(10,35,54,.28),rgba(1,4,10,.9) 70%);z-index:5;overflow-y:auto}
+.card{width:min(560px,92vw);max-height:94vh;overflow-y:auto;padding:32px;border:1px solid #4da8c35c;background:linear-gradient(135deg,rgba(5,16,28,.95),rgba(2,7,14,.94));box-shadow:0 20px 90px #0009;position:relative}
+.card:before{content:"";position:absolute;left:0;top:0;width:110px;height:2px;background:#76edff;box-shadow:0 0 15px #76edff}
+.brand{font-size:11px;letter-spacing:5px;color:#7deaff}
+.title{font-size:clamp(42px,9vw,78px);font-weight:900;letter-spacing:5px;line-height:.92;margin:20px 0 12px;text-shadow:0 0 30px #4bd7ff2e}
+.title span{color:#7deaff}
+.subtitle{color:#9cb6c4;font-size:12px;letter-spacing:2px;line-height:1.8}
+.menuRow{display:flex;gap:10px;align-items:center;margin-top:24px;flex-wrap:wrap}
+.primary{background:#b4f5ff;color:#03111a;font-weight:bold;border-color:#b4f5ff}
+.primary:hover{background:#fff;color:#00111b}
+.controls{margin-top:24px;padding-top:17px;border-top:1px solid #294454;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11px;color:#94afbf;line-height:1.7}
+.controls b{color:#e6faff;font-weight:600}
+.small{font-size:10px;color:#648394;letter-spacing:1px;margin-top:20px}
+#pauseScreen,#endScreen{display:none}
+#buyWallBtn:disabled{opacity:.4;cursor:not-allowed}
+#bottomRight button{cursor:pointer}
+.bigStat{font-size:32px;letter-spacing:3px;color:#9ef0ff;margin:14px 0}
+@media(max-width:600px){
+#topLeft{top:8px;left:8px;width:155px;padding:8px}
+#topRight{top:8px;right:8px;width:150px;padding:8px}
+#bottomLeft{bottom:8px;left:8px;width:175px;padding:8px}
+#bottomRight{bottom:8px;right:8px;width:170px;padding:8px;max-height:52vh;overflow:auto}
+.value{font-size:16px}
+#centerReadout{top:92px}
+.kicker{font-size:8px;letter-spacing:1px}
+.panel{padding:8px}
+.card{padding:24px}
+.controls{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<canvas id="game" tabindex="0"></canvas>
+
+<div id="hud">
+  <div class="panel" id="topLeft">
+    <div class="kicker">Starfighter command / pilot</div>
+    <div class="value">VANGUARD <span style="color:#78dff5;font-size:12px">- 07</span></div>
+    <div class="kicker" style="margin-top:8px">Hull integrity</div>
+    <div class="bar"><span id="hpBar"></span></div>
+    <div class="kicker" style="margin-top:9px">Deflector shields</div>
+    <div class="bar"><span id="shieldBar"></span></div>
+    <div class="kicker" style="margin-top:9px">Planet defence integrity</div>
+    <div class="bar"><span id="planetBar" style="background:#9effa2"></span></div>
+    <div class="kicker" id="planetValue" style="margin-top:4px">PLANET 100%</div>
+  </div>
+
+  <div id="centerReadout">
+    <div class="kicker">Operation: Dark Horizon</div>
+    <div class="value" id="waveText">SECTOR 01 // CONTACT</div>
+  </div>
+
+  <div class="panel" id="topRight">
+    <div class="kicker">Hostile contacts</div>
+    <div class="value" id="enemyCount">00</div>
+    <div class="kicker" style="margin-top:8px">Combat score</div>
+    <div class="value" id="scoreText">000000</div>
+    <div class="kicker" style="margin-top:8px">Confirmed kills</div>
+    <div style="font-size:12px;line-height:1.7;margin-top:4px;text-align:right">
+      <div>Target: <b id="targetKills">0</b></div>
+      <div>Heavy contact: <b id="heavyKills">0</b></div>
+      <div>Mothership: <b id="bossKills">0</b></div>
+    </div>
+  </div>
+
+  <div id="crosshair"><div id="crossDot"></div></div>
+  <div id="lock"></div>
+  <div id="toast">TARGET DESTROYED</div>
+
+  <div class="panel" id="bottomLeft">
+    <div class="kicker">Weapon system // M-90 pulse cannon</div>
+    <div class="value" id="ammoText">∞ <span style="font-size:12px;color:#ffc878">READY</span></div>
+    <div class="bar"><span id="weaponBar"></span></div>
+    <div class="kicker" style="margin-top:8px">[1] Pulse cannon &nbsp; [2] Heavy burst</div>
+  </div>
+
+  <div class="panel" id="bottomRight">
+    <div class="kicker">Flight telemetry</div>
+    <div class="value" id="speedText">MACH 2.4</div>
+    <div class="kicker" style="margin-top:8px">Throttle</div>
+    <div class="bar"><span id="speedBar" style="background:#7deaff;width:72%"></span></div>
+    <div class="kicker" style="margin-top:8px">WASD / SPACE TO FIRE</div>
+    <div class="kicker" style="margin-top:9px">Pilot equipment</div>
+    <div style="font-size:11px;line-height:1.8">
+      <div>Defence enhancer: <b id="enhancerCount">0</b> [F]</div>
+      <div>Hull boost: <b id="hullCount">0</b> [G]</div>
+      <div>Holo shield parts: <b id="wallCount">0</b></div>
+      <div>Rechargeable Blast Cannon: <b id="xpText">0%</b></div>
+      <div class="bar"><span id="xpBar" style="background:#c28cff;width:0%"></span></div>
+      <button id="buyWallBtn" style="pointer-events:auto;padding:7px 9px;margin-top:8px;width:100%;font-size:9px;letter-spacing:1px">Buy / place wall (15 targets)</button>
+    </div>
+  </div>
+
+  <div id="damageFlash"></div>
+  <div id="vignette"></div>
+</div>
+
+<div id="menu">
+  <div class="card">
+    <div class="brand">CYBORG-NINJA GAMES // FLIGHT DIVISION</div>
+    <div class="title">STAR<span>FIGHTER</span></div>
+    <div class="subtitle">DARK HORIZON // DEEP-SPACE INTERCEPTOR<br>VANGUARD CLASS MULTIROLE COMBAT CRAFT</div>
+    <div class="menuRow">
+      <button class="primary" id="startBtn">Launch mission</button>
+      <button id="howBtn">Briefing</button>
+    </div>
+    <div id="briefing" class="subtitle" style="display:none;margin-top:18px">
+      Intercept hostile fighters across multiple sectors. Protect the planet: any enemy that escapes past the bottom damages its integrity. Every fifth sector brings a Mothership and three heavy contacts. Destroy Motherships to charge your Rechargeable Blast Cannon by 25%. When fully charged, press V to clear normal enemies; it cannot destroy a Mothership. Heavy contacts may drop equipment. Fly into drops to collect them: F uses a defence enhancer, G uses a hull boost. At 15 target kills, buy a Holo Shield Part from the sidebar. It protects one-sixth of the planet and can take 20 damage.
+    </div>
+    <div class="controls">
+      <div><b>W A S D</b> — move ship<br><b>Space</b> — fire weapons<br><b>Shift</b> — afterburner</div>
+      <div><b>1 / 2</b> — weapon system<br><b>F / G</b> — use pickups<br><b>V</b> — Rechargeable Blast Cannon<br><b>Esc</b> — pause mission</div>
+    </div>
+    <div class="small">SINGLE-FILE CANVAS ENGINE // NO DOWNLOADS OR EXTERNAL LIBRARIES</div>
+  </div>
+</div>
+
+<div id="pauseScreen">
+  <div class="card">
+    <div class="brand">MISSION CONTROL</div>
+    <div class="title" style="font-size:48px">PAUSED</div>
+    <div class="subtitle">Flight systems on standby.</div>
+    <div class="menuRow">
+      <button class="primary" id="resumeBtn">Resume mission</button>
+      <button id="restartBtn">Restart</button>
+      <button id="quitBtn">Abort</button>
+    </div>
+  </div>
+</div>
+
+<div id="endScreen">
+  <div class="card">
+    <div class="brand" id="endBrand">MISSION REPORT</div>
+    <div class="title" id="endTitle" style="font-size:48px">SECTOR CLEARED</div>
+    <div class="subtitle" id="endSub">All hostile contacts neutralized.</div>
+    <div class="bigStat" id="finalScore">000000</div>
+    <div class="subtitle">FINAL COMBAT SCORE</div>
+    <div class="menuRow">
+      <button class="primary" id="nextBtn">Continue</button>
+      <button id="endMenuBtn">Main menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const $ = id => document.getElementById(id);
+
+let W=innerWidth,H=innerHeight,DPR=1,last=0,elapsed=0;
+let playing=false,paused=false,over=false;
+let player,stars=[],nebula=[],enemies=[],shots=[],enemyShots=[],particles=[],debris=[],pickups=[],walls=[],keys={};
+
+let wave=1,score=0,kills=0,targetKills=0,heavyKills=0,bossKills=0;
+let weapon=1,fireTimer=0,damageTimer=0,toastTimer=0,shake=0,screenFlash=0,spawnDelay=0;
+let highScore=Number(localStorage.getItem('starfighterHighScore')||0);
+
+let planet=100,enhancers=0,hullBoosts=0,wallParts=0,xp=0;
+let bossWaveActive=false,beamFlash=0,collisionCooldown=0,wallPurchases=0;
+
+const rand=(a,b)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+function lockCursor(){
+  if(document.pointerLockElement!==canvas){
+    try{
+      const result=canvas.requestPointerLock();
+      if(result && result.catch) result.catch(()=>{});
+    }catch(e){}
+  }
+}
+
+function unlockCursor(){
+  if(document.pointerLockElement===canvas){
+    try{document.exitPointerLock()}catch(e){}
+  }
+}
+
+function resize(){
+  W=innerWidth;
+  H=innerHeight;
+  DPR=Math.min(devicePixelRatio||1,2);
+  canvas.width=Math.floor(W*DPR);
+  canvas.height=Math.floor(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  makeStars();
+  if(player){
+    player.x=clamp(player.x,24,W-24);
+    player.y=clamp(player.y,24,H-24);
+  }
+}
+
+function makeStars(){
+  stars=Array.from({length:Math.min(420,Math.floor(W*H/2300))},()=>({
+    x:Math.random()*W,y:Math.random()*H,z:rand(.2,1),r:rand(.35,1.7),tw:rand(0,7)
+  }));
+  nebula=Array.from({length:8},()=>({
+    x:rand(-W*.2,W*1.2),y:rand(-H*.1,H*1.1),r:rand(80,260),
+    h:Math.random()<.55?195:225,a:rand(.025,.075)
+  }));
+}
+
+function reset(){
+  player={x:W/2,y:H*.72,hp:100,shield:100,speed:1,inv:0,roll:0};
+  wave=1;score=0;kills=0;targetKills=0;heavyKills=0;bossKills=0;
+  planet=100;enhancers=0;hullBoosts=0;wallParts=0;xp=0;wallPurchases=0;
+  weapon=1;shots=[];enemyShots=[];particles=[];debris=[];pickups=[];walls=[];enemies=[];
+  elapsed=0;spawnDelay=0;over=false;paused=false;playing=true;fireTimer=0;
+  bossWaveActive=false;beamFlash=0;collisionCooldown=0;
+
+  for(let i=0;i<4;i++)spawnEnemy(true,'target');
+
+  $('menu').style.display='none';
+  $('pauseScreen').style.display='none';
+  $('endScreen').style.display='none';
+  $('hud').style.display='block';
+
+  showToast('HOSTILE CONTACTS DETECTED');
+  updateHud();
+}
+
+function spawnEnemy(initial=false,type=null){
+  let heavy=type==='heavy'||(!type&&wave>=3&&Math.random()<.25);
+  let boss=type==='boss';
+
+  if(boss){
+    enemies.push({
+      type:'boss',x:W/2,y:-100,vx:rand(30,65),vy:25,
+      hp:65,maxHp:65,r:65,heavy:false,boss:true,phase:rand(0,7),
+      fire:1.2,hit:0,drift:45
+    });
+    return;
+  }
+
+  enemies.push({
+    type:heavy?'heavy':'target',
+    x:rand(W*.12,W*.88),
+    y:initial?rand(H*.08,H*.42):-rand(30,180),
+    vx:rand(-55,55)*(Math.random()<.5?-1:1),
+    vy:rand(30,65)+wave*3,
+    hp:heavy?5:2,maxHp:heavy?5:2,r:heavy?27:18,
+    heavy,boss:false,phase:rand(0,7),fire:rand(1.2,3),
+    hit:0,drift:rand(25,75),id:Math.random()
+  });
+}
+
+function spawnWave(){
+  if(wave%5===0){
+    bossWaveActive=true;
+    spawnEnemy(false,'boss');
+    for(let i=0;i<3;i++)spawnEnemy(false,'heavy');
+    showToast('WARNING // MOTHERSHIP INBOUND');
+  }else{
+    bossWaveActive=false;
+    for(let i=0;i<Math.min(3+wave,9);i++){
+      spawnEnemy(false,wave>=3&&Math.random()<.25?'heavy':'target');
+    }
+    showToast('SECTOR '+String(wave).padStart(2,'0')+' // NEW HOSTILES');
+  }
+}
+
+function showToast(s){
+  $('toast').textContent=s;
+  $('toast').style.opacity='1';
+  toastTimer=1.3;
+}
+
+function burst(x,y,color,n=16,power=1){
+  for(let i=0;i<n;i++){
+    let a=Math.random()*Math.PI*2,sp=rand(25,240)*power;
+    particles.push({
+      x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,
+      life:rand(.25,.85)*power,max:.85*power,r:rand(1,4)*power,
+      color,drag:rand(.91,.98)
+    });
+  }
+}
+
+function addShot(x,y,vx,vy,damage,kind='player',r=3){
+  (kind==='player'?shots:enemyShots).push({x,y,vx,vy,damage,life:2,r,kind});
+}
+
+function fire(){
+  if(!playing||paused||over||fireTimer>0)return;
+  fireTimer=weapon===1?.13:.58;
+  let px=player.x,py=player.y-18;
+
+  if(weapon===1){
+    for(let d of [-1,1])addShot(px+d*12,py,d*22,-760,1,'player',2.4);
+    burst(px,py,'#86edff',3,.28);
+  }else{
+    for(let d of [-1,0,1])addShot(px+d*9,py,d*95,-640,2,'player',4);
+    burst(px,py,'#ffc878',7,.5);
+  }
+}
+
+function enemyFire(e){
+  let dx=player.x-e.x,dy=player.y-e.y,len=Math.hypot(dx,dy)||1;
+  let speed=rand(190,280)+wave*8;
+
+  if(e.boss){
+    for(let spread of [-.25,0,.25]){
+      let a=Math.atan2(dy,dx)+spread;
+      addShot(e.x,e.y+e.r*.4,Math.cos(a)*speed,Math.sin(a)*speed,8,'enemy',5);
+    }
+  }else{
+    addShot(e.x,e.y+e.r*.5,dx/len*speed,dy/len*speed,5,'enemy',4);
+  }
+}
+
+function hurt(d){
+  if(player.inv>0)return;
+  player.inv=.22;
+  damageTimer=3;
+
+  let absorbed=Math.min(player.shield,d);
+  player.shield-=absorbed;
+  player.hp-=d-absorbed;
+  screenFlash=.8;
+  shake=8;
+  burst(player.x,player.y,'#ff5266',10,.5);
+
+  if(player.hp<=35)showToast('WARNING // HULL CRITICAL');
+}
+
+function useEnhancer(){
+  if(enhancers>0&&player.shield<100){
+    enhancers--;
+    player.shield=Math.min(100,player.shield+30);
+    showToast('DEFENCE ENHANCED +30');
+    updateHud();
+  }else if(enhancers===0){
+    showToast('NO DEFENCE ENHANCERS');
+  }
+}
+
+function useHull(){
+  if(hullBoosts>0&&player.hp<100){
+    hullBoosts--;
+    player.hp=Math.min(100,player.hp+28);
+    burst(player.x,player.y,'#9effa2',15,.6);
+    showToast('HULL REPAIRED +28');
+    updateHud();
+  }else if(hullBoosts===0){
+    showToast('NO HULL BOOSTS');
+  }else{
+    showToast('HULL INTEGRITY ALREADY FULL');
+  }
+}
+
+function activateBeam(){
+  if(xp<100){
+    showToast('RECHARGEABLE BLAST CANNON INCOMPLETE');
+    return;
+  }
+
+  xp=0;
+  beamFlash=.9;
+  screenFlash=.35;
+  shake=16;
+  burst(player.x,player.y-100,'#c28cff',80,2.2);
+
+  for(let e of enemies){
+    if(e.boss){
+      e.hp=Math.max(1,e.hp-12);
+      e.hit=.3;
+      burst(e.x,e.y,'#d9a5ff',22,.8);
+    }else{
+      score+=e.heavy?300:100;
+      if(e.heavy)heavyKills++;else targetKills++;
+      kills++;
+      burst(e.x,e.y,e.heavy?'#ff9b5a':'#77dfff',30,1.3);
+      dropForEnemy(e);
+    }
+  }
+
+  enemies=enemies.filter(e=>e.boss||e.hp>0);
+  enemyShots=[];
+  showToast('RECHARGEABLE BLAST CANNON // DISCHARGED');
+  updateHud();
+}
+
+function dropForEnemy(e){
+  if(e.boss)return;
+
+  if(e.heavy){
+    if(Math.random()<.25){
+      pickups.push({x:e.x,y:e.y,type:'shield',life:45,phase:rand(0,6)});
+    }
+    if(Math.random()<.25){
+      pickups.push({x:e.x+rand(-18,18),y:e.y+8,type:'hull',life:45,phase:rand(0,6)});
+    }
+  }else if(Math.random()<.30){
+    pickups.push({x:e.x,y:e.y,type:'debris',life:45,phase:rand(0,6)});
+  }
+}
+
+function killEnemy(e){
+  score+=e.boss?1500:e.heavy?300:100;
+  kills++;
+
+  if(e.boss){
+    bossKills++;
+    xp=Math.min(100,xp+25);
+    showToast('MOTHERSHIP DESTROYED // CANNON CHARGE +25%');
+  }else if(e.heavy){
+    heavyKills++;
+  }else{
+    targetKills++;
+  }
+
+  burst(e.x,e.y,e.boss?'#d3a0ff':e.heavy?'#ff9b5a':'#77dfff',
+    e.boss?70:e.heavy?42:26,e.boss?1.8:e.heavy?1.4:1);
+
+  for(let i=0;i<(e.boss?22:8);i++){
+    debris.push({
+      x:e.x,y:e.y,vx:rand(-160,160),vy:rand(-170,170),
+      a:rand(0,6),va:rand(-7,7),life:rand(1,2),size:rand(3,8)
+    });
+  }
+
+  dropForEnemy(e);
+  showToast(e.boss?'MOTHERSHIP DESTROYED':e.heavy?'HEAVY CONTACT DESTROYED':'TARGET DESTROYED');
+}
+
+function buyWall(){
+  let cost=(wallPurchases+1)*15;
+
+  if(targetKills<cost){
+    showToast('NEED '+cost+' TOTAL TARGET KILLS');
+    return;
+  }
+
+  let slot=clamp(Math.floor((player.x/W)*6),0,5);
+  let existing=walls.find(w=>w.slot===slot&&w.hp>0);
+
+  if(existing){
+    let free=[0,1,2,3,4,5].find(s=>!walls.some(w=>w.slot===s&&w.hp>0));
+    if(free===undefined){
+      showToast('ALL SIX DEFENCE SECTORS OCCUPIED');
+      return;
+    }
+    slot=free;
+  }
+
+  wallPurchases++;
+  walls.push({slot,hp:20,maxHp:20});
+  showToast('HOLO SHIELD PART DEPLOYED');
+  updateHud();
+}
+
+function update(dt){
+  elapsed+=dt;
+  fireTimer=Math.max(0,fireTimer-dt);
+  damageTimer=Math.max(0,damageTimer-dt);
+  toastTimer=Math.max(0,toastTimer-dt);
+  collisionCooldown=Math.max(0,collisionCooldown-dt);
+  beamFlash=Math.max(0,beamFlash-dt);
+  if(toastTimer===0)$('toast').style.opacity='0';
+
+  shake=Math.max(0,shake-dt*16);
+  screenFlash=Math.max(0,screenFlash-dt*2);
+
+  const boost=keys.ShiftLeft||keys.ShiftRight;
+  let ax=0,ay=0;
+
+  if(keys.KeyA)ax--;
+  if(keys.KeyD)ax++;
+  if(keys.KeyW)ay--;
+  if(keys.KeyS)ay++;
+
+  // KEYBOARD-ONLY FLIGHT.
+  // The ship can reach the top edge but never leave the screen.
+  const moveSpeed=310;
+  const boostMultiplier=boost?1.5:1;
+
+  player.x=clamp(player.x+ax*moveSpeed*dt*boostMultiplier,24,W-24);
+  player.y=clamp(player.y+ay*moveSpeed*dt*boostMultiplier,24,H-24);
+
+  player.roll+=(ax*.45-player.roll)*Math.min(1,dt*3);
+  player.speed=boost?1:.72;
+  player.inv=Math.max(0,player.inv-dt);
+
+  // Space is the only firing control.
+  if(keys.Space)fire();
+
+  if(damageTimer<=0&&player.shield<100){
+    player.shield=Math.min(100,player.shield+dt*7);
+  }
+
+  for(let s of stars){
+    s.y+=dt*(22+s.z*125)*(boost?1.8:1);
+    s.x-=player.roll*dt*90*s.z;
+    if(s.y>H){s.y=0;s.x=Math.random()*W}
+    if(s.x<0)s.x=W;
+    if(s.x>W)s.x=0;
+    s.tw+=dt;
+  }
+
+  for(let n of nebula)n.x-=dt*4;
+
+  for(let e of enemies){
+    e.phase+=dt;
+
+    if(e.boss){
+      e.x+=Math.sin(e.phase*.65)*e.drift*dt;
+      e.y=Math.min(H*.22,e.y+e.vy*dt);
+      e.x=clamp(e.x,100,W-100);
+    }else{
+      e.x+=Math.sin(e.phase*1.2)*e.drift*dt+e.vx*dt*.3;
+      e.y+=e.vy*dt;
+      e.x=clamp(e.x,35,W-35);
+    }
+
+    e.hit=Math.max(0,e.hit-dt);
+    e.fire-=dt;
+
+    if(e.fire<=0&&e.y>0&&e.y<H*.75){
+      enemyFire(e);
+      e.fire=e.boss?1.05:rand(1.5,3.1)-Math.min(wave*.07,.7);
+    }
+
+    if(Math.hypot(e.x-player.x,e.y-player.y)<e.r+17&&collisionCooldown<=0){
+      collisionCooldown=.7;
+      hurt(e.boss?24:e.heavy?18:13);
+      e.hp-=1;
+      e.hit=.2;
+      if(e.hp<=0)e._dead=true;
+    }
+
+    if(!e.boss&&e.y-e.r>H){
+      let damage=e.heavy?10:5;
+      let slot=clamp(Math.floor(e.x/W*6),0,5);
+      let wall=walls.find(w=>w.slot===slot&&w.hp>0);
+
+      if(wall){
+        let absorbed=Math.min(wall.hp,damage);
+        wall.hp-=absorbed;
+        damage-=absorbed;
+        if(wall.hp<=0)showToast('HOLO SHIELD PART DESTROYED');
+      }
+
+      planet=Math.max(0,planet-damage);
+      burst(e.x,H-8,e.heavy?'#ff9b5a':'#ff6c7b',10,.6);
+      e._escaped=true;
+
+      if(planet<=0){
+        finish(false,'planet');
+        return;
+      }
+    }
+  }
+
+  for(let s of shots){
+    s.x+=s.vx*dt;
+    s.y+=s.vy*dt;
+    s.life-=dt;
+  }
+
+  shots=shots.filter(s=>s.life>0&&s.y>-30&&s.y<H+30);
+
+  for(let s of enemyShots){
+    s.x+=s.vx*dt;
+    s.y+=s.vy*dt;
+    s.life-=dt;
+
+    if(s.x<-20||s.x>W+20)s.life=0;
+    if(s.y>H+20)s.life=0;
+
+    if(s.life>0){
+      let slot=clamp(Math.floor(s.x/W*6),0,5);
+      let wall=walls.find(w=>w.slot===slot&&w.hp>0);
+
+      if(wall&&s.y>H-65){
+        wall.hp-=1;
+        s.life=0;
+        if(wall.hp<=0)showToast('HOLO SHIELD PART DESTROYED');
+      }
+    }
+
+    if(s.life>0&&Math.hypot(s.x-player.x,s.y-player.y)<19&&player.inv<=0){
+      s.life=0;
+      hurt(s.damage);
+    }
+  }
+
+  enemyShots=enemyShots.filter(s=>s.life>0);
+
+  for(let s of shots){
+    for(let e of enemies){
+      if(e.hp>0&&Math.hypot(s.x-e.x,s.y-e.y)<e.r+4){
+        s.life=0;
+        e.hp-=s.damage;
+        e.hit=.1;
+        burst(s.x,s.y,weapon===1?'#8bf1ff':'#ffc878',4,.35);
+        if(e.hp<=0)e._dead=true;
+        break;
+      }
+    }
+  }
+
+  for(let e of enemies.filter(e=>e._dead))killEnemy(e);
+  enemies=enemies.filter(e=>!e._dead&&!e._escaped);
+
+  for(let p of particles){
+    p.x+=p.vx*dt;
+    p.y+=p.vy*dt;
+    p.vx*=p.drag;
+    p.vy*=p.drag;
+    p.life-=dt;
+  }
+  particles=particles.filter(p=>p.life>0);
+
+  for(let d of debris){
+    d.x+=d.vx*dt;
+    d.y+=d.vy*dt;
+    d.vx*=.99;
+    d.vy+=20*dt;
+    d.a+=d.va*dt;
+    d.life-=dt;
+  }
+  debris=debris.filter(d=>d.life>0);
+
+  for(let p of pickups){
+    p.y+=Math.sin(elapsed*2+p.phase)*8*dt;
+    p.life-=dt;
+
+    if(Math.hypot(p.x-player.x,p.y-player.y)<28){
+      if(p.type==='shield'){
+        enhancers++;
+        showToast('DEFENCE ENHANCER COLLECTED');
+      }else if(p.type==='hull'){
+        hullBoosts++;
+        showToast('HULL BOOST COLLECTED');
+      }else{
+        wallParts++;
+        showToast('HOLO SHIELD PART SALVAGED');
+      }
+      p.life=0;
+    }
+
+    if(p.life<=0)p.dead=true;
+  }
+
+  pickups=pickups.filter(p=>!p.dead&&p.life>0);
+
+  if(enemies.length===0){
+    spawnDelay+=dt;
+    if(spawnDelay>1.6){
+      wave++;
+      spawnDelay=0;
+      spawnWave();
+    }
+  }else{
+    spawnDelay=0;
+  }
+
+  if(player.hp<=0)finish(false,'ship');
+  updateHud();
+}
+
+function updateHud(){
+  $('hpBar').style.width=clamp(player.hp,0,100)+'%';
+  $('shieldBar').style.width=clamp(player.shield,0,100)+'%';
+  $('planetBar').style.width=clamp(planet,0,100)+'%';
+  $('planetValue').textContent='PLANET '+Math.round(planet)+'%';
+  $('enemyCount').textContent=String(enemies.length).padStart(2,'0');
+  $('scoreText').textContent=String(score).padStart(6,'0');
+  $('targetKills').textContent=targetKills;
+  $('heavyKills').textContent=heavyKills;
+  $('bossKills').textContent=bossKills;
+  $('waveText').textContent='SECTOR '+String(wave).padStart(2,'0')+(wave%5===0?' // MOTHERSHIP':' // CONTACT');
+  $('speedText').textContent=keys.ShiftLeft||keys.ShiftRight?'AFTERBURNER':'MACH 2.4';
+  $('speedBar').style.width=(player.speed*100)+'%';
+  $('ammoText').innerHTML=weapon===1?'∞ <span style="font-size:12px;color:#ffc878">READY</span>':'BURST <span style="font-size:12px;color:#ffc878">HEAVY</span>';
+  $('weaponBar').style.width=(weapon===1?100:Math.max(0,100-fireTimer/0.58*100))+'%';
+  $('enhancerCount').textContent=enhancers;
+  $('hullCount').textContent=hullBoosts;
+  $('wallCount').textContent=wallParts;
+  $('xpText').textContent=Math.round(xp)+'%';
+  $('xpBar').style.width=xp+'%';
+  $('buyWallBtn').disabled=targetKills<(wallPurchases+1)*15;
+  $('buyWallBtn').textContent='Buy / place wall ('+((wallPurchases+1)*15)+' target kills)';
+}
+
+function drawShip(x,y,scale,enemy=false,heavy=false,roll=0,hit=0,boss=false){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(roll);
+  ctx.scale(scale,scale);
+
+  if(boss){
+    ctx.shadowBlur=28;
+    ctx.shadowColor='#d16aff';
+    ctx.fillStyle=hit?'#fff':'#4b315f';
+    ctx.strokeStyle='#d6a1ff';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(-72,-16);ctx.lineTo(-52,-40);ctx.lineTo(-25,-35);
+    ctx.lineTo(-12,-54);ctx.lineTo(12,-54);ctx.lineTo(25,-35);
+    ctx.lineTo(52,-40);ctx.lineTo(72,-16);ctx.lineTo(59,20);
+    ctx.lineTo(28,32);ctx.lineTo(16,45);ctx.lineTo(-16,45);
+    ctx.lineTo(-28,32);ctx.lineTo(-59,20);ctx.closePath();
+    ctx.fill();ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#d9a4ff';
+    for(let i=-2;i<=2;i++)ctx.fillRect(i*20-3,-7,6,22);
+    ctx.strokeStyle='#ffc4ff';
+    ctx.beginPath();ctx.ellipse(0,3,23,13,0,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='#f1caff';ctx.fillRect(-65,7,12,4);ctx.fillRect(53,7,12,4);
+    ctx.restore();
+    return;
+  }
+
+  let main=enemy?(hit?'#fff':'#7c303d'):'#627b8b';
+  let edge=enemy?'#ff707c':'#b6e6f4';
+  let glow=enemy?'#ff4a55':'#4bdfff';
+
+  ctx.shadowBlur=enemy?12:18;
+  ctx.shadowColor=glow;
+  ctx.fillStyle=main;
+  ctx.strokeStyle=edge;
+  ctx.lineWidth=1.3;
+  ctx.beginPath();
+  ctx.moveTo(0,-34-(heavy?9:0));
+  ctx.lineTo(9,-12);ctx.lineTo(29,6);ctx.lineTo(32,17);
+  ctx.lineTo(12,13);ctx.lineTo(6,25);ctx.lineTo(-6,25);
+  ctx.lineTo(-12,13);ctx.lineTo(-32,17);ctx.lineTo(-29,6);
+  ctx.lineTo(-9,-12);ctx.closePath();
+  ctx.fill();ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#182c3b';
+  ctx.beginPath();
+  ctx.moveTo(0,-25);ctx.lineTo(5,-8);ctx.lineTo(3,8);
+  ctx.lineTo(-3,8);ctx.lineTo(-5,-8);ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle=glow;
+  ctx.globalAlpha=.9;
+  ctx.beginPath();
+  ctx.moveTo(-4,18);ctx.lineTo(0,31+Math.random()*8);ctx.lineTo(4,18);
+  ctx.closePath();ctx.fill();
+  ctx.globalAlpha=1;
+  ctx.fillStyle=enemy?'#ff9c73':'#d6fbff';
+  ctx.fillRect(-24,8,8,2);ctx.fillRect(16,8,8,2);
+
+  if(enemy&&heavy){
+    ctx.strokeStyle='#ffbb83';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(0,0,35,0,Math.PI*2);ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawBackground(dt){
+  let g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#020610');
+  g.addColorStop(.48,'#071522');
+  g.addColorStop(1,'#03070e');
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,W,H);
+
+  for(let n of nebula){
+    let gr=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
+    gr.addColorStop(0,`hsla(${n.h},75%,42%,${n.a})`);
+    gr.addColorStop(1,`hsla(${n.h},75%,20%,0)`);
+    ctx.fillStyle=gr;
+    ctx.fillRect(n.x-n.r,n.y-n.r,n.r*2,n.r*2);
+  }
+
+  for(let s of stars){
+    let a=.28+s.z*.65*(.7+.3*Math.sin(s.tw));
+    ctx.globalAlpha=a;
+    ctx.fillStyle=s.z>.8?'#d9f7ff':'#83b5d7';
+    ctx.fillRect(s.x,s.y,s.r,s.r);
+
+    if((keys.ShiftLeft||keys.ShiftRight)&&s.z>.6){
+      ctx.strokeStyle='#8aeaff';
+      ctx.globalAlpha=.3;
+      ctx.beginPath();
+      ctx.moveTo(s.x,s.y);
+      ctx.lineTo(s.x-player.roll*30,s.y-10-s.z*35);
+      ctx.stroke();
+    }
+  }
+
+  ctx.globalAlpha=1;
+
+  const planetX=W*.77,planetY=H*.29,pr=Math.min(W,H)*.12;
+  let pg=ctx.createRadialGradient(planetX-pr*.35,planetY-pr*.4,pr*.08,planetX,planetY,pr);
+  pg.addColorStop(0,'#718d9c');
+  pg.addColorStop(.42,'#314c64');
+  pg.addColorStop(.78,'#12283b');
+  pg.addColorStop(1,'#050b17');
+  ctx.fillStyle=pg;
+  ctx.beginPath();ctx.arc(planetX,planetY,pr,0,Math.PI*2);ctx.fill();
+
+  ctx.save();
+  ctx.beginPath();ctx.arc(planetX,planetY,pr,0,Math.PI*2);ctx.clip();
+  ctx.globalAlpha=.17;
+
+  for(let i=0;i<8;i++){
+    ctx.strokeStyle=i%2?'#9cb8c3':'#101b32';
+    ctx.lineWidth=rand(4,12);
+    ctx.beginPath();
+    ctx.ellipse(planetX,planetY+rand(-pr,pr),pr*rand(.3,1.1),rand(2,9),rand(-.4,.4),0,Math.PI*2);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+  ctx.strokeStyle='#7edbff';
+  ctx.globalAlpha=.23;
+  ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(planetX,planetY,pr+3,-.25,Math.PI*.8);ctx.stroke();
+  ctx.globalAlpha=1;
+}
+
+function draw(){
+  ctx.save();
+
+  if(shake>0)ctx.translate(rand(-shake,shake),rand(-shake,shake));
+
+  drawBackground();
+
+  for(let w of walls){
+    if(w.hp<=0)continue;
+    let x=w.slot*W/6,ww=W/6,y=H-53;
+    ctx.save();
+    ctx.shadowBlur=14;
+    ctx.shadowColor='#4df3ff';
+    ctx.fillStyle='rgba(70,235,255,.11)';
+    ctx.strokeStyle='rgba(105,244,255,.8)';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(x+5,y);ctx.lineTo(x+15,y-23);
+    ctx.lineTo(x+ww-15,y-23);ctx.lineTo(x+ww-5,y);
+    ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#b4fbff';
+    ctx.font='9px Arial';
+    ctx.textAlign='center';
+    ctx.fillText('HOLO SHIELD '+Math.ceil(w.hp),x+ww/2,y-9);
+    ctx.restore();
+  }
+
+  for(let d of debris){
+    ctx.save();
+    ctx.translate(d.x,d.y);
+    ctx.rotate(d.a);
+    ctx.globalAlpha=clamp(d.life/1.5,0,1);
+    ctx.fillStyle='#9aadb8';
+    ctx.fillRect(-d.size/2,-d.size/2,d.size,d.size*.6);
+    ctx.restore();
+  }
+
+  for(let e of enemies){
+    drawShip(e.x,e.y,e.boss?1:e.heavy?1.08:.8,true,e.heavy,Math.sin(e.phase)*.12,e.hit,e.boss);
+    ctx.fillStyle='#243440';
+    let bw=e.boss?120:40,bh=e.boss?5:3;
+    ctx.fillRect(e.x-bw/2,e.y-e.r-12,bw,bh);
+    ctx.fillStyle=e.boss?'#d29aff':e.heavy?'#ff865e':'#ff6874';
+    ctx.fillRect(e.x-bw/2,e.y-e.r-12,bw*e.hp/e.maxHp,bh);
+
+    if(e.boss){
+      ctx.fillStyle='#d6b5ff';
+      ctx.font='11px Arial';
+      ctx.textAlign='center';
+      ctx.fillText('MOTHERSHIP',e.x,e.y-e.r-20);
+    }
+  }
+
+  for(let p of pickups){
+    ctx.save();
+    ctx.translate(p.x,p.y);
+    ctx.rotate(elapsed*.8);
+    ctx.shadowBlur=18;
+    ctx.shadowColor=p.type==='shield'?'#70aaff':p.type==='hull'?'#9effa2':'#66fff0';
+    ctx.strokeStyle=p.type==='shield'?'#70aaff':p.type==='hull'?'#9effa2':'#66fff0';
+    ctx.fillStyle='rgba(10,30,50,.8)';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(0,-13);ctx.lineTo(12,0);ctx.lineTo(0,13);ctx.lineTo(-12,0);
+    ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#fff';
+    ctx.font='bold 9px Arial';
+    ctx.textAlign='center';
+    ctx.fillText(p.type==='shield'?'F':p.type==='hull'?'G':'H',0,3);
+    ctx.restore();
+  }
+
+  for(let s of shots){
+    ctx.save();
+    ctx.shadowBlur=16;
+    ctx.shadowColor=weapon===1?'#54e8ff':'#ffc878';
+    ctx.strokeStyle=weapon===1?'#a8f7ff':'#ffe1a3';
+    ctx.lineWidth=s.r;
+    ctx.beginPath();
+    ctx.moveTo(s.x,s.y+14);
+    ctx.lineTo(s.x-s.vx*.018,s.y-13);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  for(let s of enemyShots){
+    ctx.save();
+    ctx.shadowBlur=14;
+    ctx.shadowColor='#ff354d';
+    ctx.fillStyle='#ff7780';
+    ctx.beginPath();
+    ctx.ellipse(s.x,s.y,3.5,7,Math.atan2(s.vy,s.vx)-Math.PI/2,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  for(let p of particles){
+    ctx.globalAlpha=clamp(p.life/(p.max||.85),0,1);
+    ctx.fillStyle=p.color;
+    ctx.shadowBlur=8;
+    ctx.shadowColor=p.color;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r*clamp(p.life*2,0,1),0,Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.globalAlpha=1;
+  ctx.shadowBlur=0;
+
+  if(playing&&!over){
+    if(player.inv<=0||Math.floor(elapsed*18)%2===0){
+      drawShip(player.x,player.y,1,false,false,player.roll,0);
+    }
+
+    drawCockpit();
+
+    if(beamFlash>0){
+      ctx.save();
+      ctx.globalAlpha=beamFlash;
+      let gr=ctx.createRadialGradient(player.x,player.y-20,5,player.x,player.y-20,Math.max(W,H));
+      gr.addColorStop(0,'rgba(245,225,255,.95)');
+      gr.addColorStop(.25,'rgba(167,95,255,.65)');
+      gr.addColorStop(1,'rgba(93,30,255,0)');
+      ctx.fillStyle=gr;
+      ctx.fillRect(0,0,W,H);
+      ctx.restore();
+    }
+
+    if(screenFlash>0){
+      ctx.fillStyle=`rgba(255,25,45,${screenFlash*.17})`;
+      ctx.fillRect(0,0,W,H);
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawCockpit(){
+  ctx.save();
+  let grad=ctx.createLinearGradient(0,H-155,0,H);
+  grad.addColorStop(0,'rgba(8,22,34,0)');
+  grad.addColorStop(1,'rgba(2,7,13,.72)');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,H-155,W,155);
+  ctx.strokeStyle='rgba(107,214,240,.12)';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(0,H-82);
+  ctx.lineTo(W*.22,H-58);
+  ctx.lineTo(W*.37,H-44);
+  ctx.moveTo(W,H-82);
+  ctx.lineTo(W*.78,H-58);
+  ctx.lineTo(W*.63,H-44);
+  ctx.stroke();
+  ctx.strokeStyle='rgba(125,234,255,.22)';
+  ctx.beginPath();
+  ctx.moveTo(W*.12,H);
+  ctx.lineTo(W*.34,H-34);
+  ctx.lineTo(W*.66,H-34);
+  ctx.lineTo(W*.88,H);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function frame(t){
+  requestAnimationFrame(frame);
+  let dt=Math.min((t-last)/1000||0,.033);
+  last=t;
+
+  if(playing&&!paused&&!over)update(dt);
+  draw();
+}
+
+function finish(won=false,reason='ship'){
+  over=true;
+  playing=false;
+  unlockCursor();
+  $('hud').style.display='none';
+  $('endScreen').style.display='flex';
+  $('endBrand').textContent=reason==='planet'?'PLANETARY DEFENCE // FAILURE':'MISSION REPORT';
+  $('endTitle').textContent=reason==='planet'?'GAME OVER, DEFENCE FAILED':won?'SECTOR CLEARED':'SHIP DESTROYED';
+  $('endSub').textContent=reason==='planet'
+    ?'Planet integrity depleted. The hostile fleet breached the defence perimeter.'
+    :won?'Hostile formation neutralized.':'Vanguard hull integrity lost. Mission terminated.';
+  $('finalScore').textContent=String(score).padStart(6,'0');
+
+  if(score>highScore){
+    highScore=score;
+    localStorage.setItem('starfighterHighScore',String(score));
+  }
+
+  $('nextBtn').textContent=won?'Continue':'Retry';
+}
+
+function pause(){
+  if(!playing||over)return;
+
+  paused=!paused;
+  $('pauseScreen').style.display=paused?'flex':'none';
+
+  if(paused){
+    unlockCursor();
+  }else{
+    lockCursor();
+    canvas.focus();
+  }
+}
+
+$('startBtn').onclick=()=>{
+  reset();
+  canvas.focus();
+  lockCursor();
+};
+
+$('howBtn').onclick=()=>{
+  let b=$('briefing');
+  b.style.display=b.style.display==='none'?'block':'none';
+};
+
+$('resumeBtn').onclick=()=>pause();
+
+$('restartBtn').onclick=()=>{
+  reset();
+  lockCursor();
+  canvas.focus();
+};
+
+$('quitBtn').onclick=()=>{
+  playing=false;
+  paused=false;
+  unlockCursor();
+  $('pauseScreen').style.display='none';
+  $('hud').style.display='none';
+  $('menu').style.display='flex';
+};
+
+$('nextBtn').onclick=()=>{
+  reset();
+  lockCursor();
+  canvas.focus();
+};
+
+$('endMenuBtn').onclick=()=>{
+  unlockCursor();
+  $('endScreen').style.display='none';
+  $('menu').style.display='flex';
+  $('hud').style.display='none';
+  over=false;
+};
+
+$('buyWallBtn').onclick=buyWall;
+
+addEventListener('resize',resize);
+
+addEventListener('keydown',e=>{
+  keys[e.code]=true;
+
+  if(['Space','KeyW','KeyA','KeyS','KeyD'].includes(e.code)){
+    e.preventDefault();
+  }
+
+  if(e.code==='Escape'){
+    pause();
+  }
+
+  if(e.code==='Digit1')weapon=1;
+  if(e.code==='Digit2')weapon=2;
+  if(e.code==='KeyF')useEnhancer();
+  if(e.code==='KeyG')useHull();
+
+  if(e.code==='KeyV'&&playing&&!paused){
+    activateBeam();
+  }
+});
+
+addEventListener('keyup',e=>{
+  keys[e.code]=false;
+});
+
+addEventListener('blur',()=>{
+  keys={};
+});
+
+document.addEventListener('contextmenu',e=>e.preventDefault());
+
+resize();
+requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>
